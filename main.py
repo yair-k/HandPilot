@@ -5,6 +5,7 @@ import time
 import keyboard
 import tkinter as tk
 from pynput.mouse import Button, Controller
+from mediapipe.framework.formats import landmark_pb2
 
 mouse = Controller()
 mp_drawing = mp.solutions.drawing_utils
@@ -16,43 +17,48 @@ def tk_arg():
     global screenRes
     root = tk.Tk()
     root.title("Control Panel")
+
+    background_color = '#2D2D2D' 
+    foreground_color = '#E0E0E0'  
+    button_color = '#4F4F4F' 
+    highlight_color = '#606060' 
+
+    root.configure(background=background_color)
     root.geometry("370x320")
-    screenRes = (root.winfo_screenwidth(),
-                 root.winfo_screenheight())
+    screenRes = (root.winfo_screenwidth(), root.winfo_screenheight())
+
     Val1 = tk.IntVar()
     Val2 = tk.IntVar()
     Val4 = tk.IntVar()
     Val4.set(30)
 
-    place = ['Normal', 'Above', 'Behind'] 
-    Static1 = tk.Label(text='Camera').grid(row=1)
+    place = ['Normal', 'Above', 'Behind']
+
+    tk.Label(root, text='Camera', bg=background_color, fg=foreground_color).grid(row=1)
     for i in range(4):
-        tk.Radiobutton(root,
-                       value=i,
-                       variable=Val1,
-                       text=f'Device{i}'
-                       ).grid(row=2, column=i*2)
-    St1 = tk.Label(text='     ').grid(row=3)
-    Static1 = tk.Label(text='How to place').grid(row=4)
+        tk.Radiobutton(root, value=i, variable=Val1, text=f'Device{i}', bg=background_color, fg=foreground_color, selectcolor=highlight_color).grid(row=2, column=i*2)
+
+    tk.Label(root, text=' ', bg=background_color).grid(row=3)
+    tk.Label(root, text='How to place', bg=background_color, fg=foreground_color).grid(row=4)
     for i in range(3):
-        tk.Radiobutton(root,
-                       value=i,
-                       variable=Val2,
-                       text=f'{place[i]}'
-                       ).grid(row=5, column=i*2)
-    St1 = tk.Label(text='     ').grid(row=6)
-    Static4 = tk.Label(text='Sensitivity').grid(row=7) 
-    s1 = tk.Scale(root, orient='h',
-                  from_=1, to=100, variable=Val4
-                  ).grid(row=8, column=2)
-    St4 = tk.Label(text='     ').grid(row=9)
-    Button = tk.Button(text="continue", command=root.destroy).grid(
-        row=10, column=2)
+        tk.Radiobutton(root, value=i, variable=Val2, text=f'{place[i]}', bg=background_color, fg=foreground_color, selectcolor=highlight_color).grid(row=5, column=i*2)
+
+    tk.Label(root, text=' ', bg=background_color).grid(row=6)
+    tk.Label(root, text='Sensitivity', bg=background_color, fg=foreground_color).grid(row=7)
+    tk.Scale(root, orient='h', from_=1, to=100, variable=Val4, bg=background_color, fg=foreground_color, troughcolor=highlight_color).grid(row=8, column=2)
+
+    tk.Label(root, text=' ', bg=background_color).grid(row=9)
+    tk.Button(root, text="Continue", command=root.destroy, bg=button_color, fg=foreground_color).grid(row=10, column=2)
+
+    tk.Label(root, text='Made by Yair, David and Anton', bg=background_color, fg=foreground_color).grid(row=11, columnspan=4)
+
     root.mainloop()
-    cap_device = Val1.get()             
-    mode = Val2.get()                    
-    kando = Val4.get()/10             
+    cap_device = Val1.get()
+    mode = Val2.get()
+    kando = Val4.get() / 10
     return cap_device, mode, kando
+
+
 
 def draw_circle(image, x, y, roudness, color):
     cv2.circle(image, (int(x), int(y)), roudness, color,
@@ -123,8 +129,13 @@ def main(cap_device, mode, kando):
         if results.multi_hand_landmarks:
 
             for hand_landmarks in results.multi_hand_landmarks:
+
+                connection_drawing_spec = mp_drawing.DrawingSpec(color=(0, 0, 0), thickness=5)
                 mp_drawing.draw_landmarks(
-                    image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                    image, 
+                    hand_landmarks, 
+                    mp_hands.HAND_CONNECTIONS,
+                    connection_drawing_spec=connection_drawing_spec)
 
             if keyboard.is_pressed(hotkey):  
                 can = 1
@@ -245,15 +256,14 @@ def main(cap_device, mode, kando):
 
         if c_text == 1:
             cv2.putText(image, f"Push {hotkey}", (20, 450),
-                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
+                        cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0), 3)
         cv2.putText(image, "cameraFPS:"+str(cfps), (20, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
         p_e = time.perf_counter()
         fps = str(int(1/(float(p_e)-float(p_s))))
         cv2.putText(image, "FPS:"+fps, (20, 80),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
-        dst = cv2.resize(image, dsize=None, fx=0.4,
-                         fy=0.4)         
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+        dst = cv2.resize(image, (800, 600))
         cv2.imshow(window_name, dst)
         if (cv2.waitKey(1) & 0xFF == 27) or (cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) == 0):
             break
