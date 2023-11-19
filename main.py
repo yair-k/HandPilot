@@ -10,8 +10,9 @@ from mediapipe.framework.formats import landmark_pb2
 mouse = Controller()
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
-hotkey = 'Shift'
+hotkey = 'Shift'  
 screenRes = (0, 0)
+controller_enabled = False  
 
 def tk_arg():
     global screenRes
@@ -58,10 +59,8 @@ def tk_arg():
     kando = Val4.get() / 10
     return cap_device, mode, kando
 
-
-
 def draw_circle(image, x, y, roudness, color):
-    cv2.circle(image, (int(x), int(y)), roudness, color,
+    cv2.circle(image, (int(x), int(y)), roudness, color,    
                thickness=5, lineType=cv2.LINE_8, shift=0)
 
 def calculate_distance(l1, l2):
@@ -78,6 +77,7 @@ def calculate_moving_average(landmark, ran, LiT):
     return sum(LiT)/ran
 
 def main(cap_device, mode, kando):
+    global controller_enabled 
     dis = 0.7                           
     preX, preY = 0, 0
     nowCli, preCli = 0, 0               
@@ -102,11 +102,11 @@ def main(cap_device, mode, kando):
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cap_height)
         cfps = int(cap.get(cv2.CAP_PROP_FPS))
 
-    ran = max(int(cfps/10), 1)
+    ran = max(int(cfps / 10), 1)
     hands = mp_hands.Hands(
-        min_detection_confidence=0.8,   
-        min_tracking_confidence=0.8,    
-        max_num_hands=1                 
+        min_detection_confidence=0.8,
+        min_tracking_confidence=0.8,
+        max_num_hands=1
     )
 
     while cap.isOpened():
@@ -114,37 +114,40 @@ def main(cap_device, mode, kando):
         success, image = cap.read()
         if not success:
             continue
-        if mode == 1:                   
-            image = cv2.flip(image, 0)  
-        elif mode == 2:                 
-            image = cv2.flip(image, 1)  
+        if mode == 1:
+            image = cv2.flip(image, 0)
+        elif mode == 2:
+            image = cv2.flip(image, 1)
 
         image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
-        image.flags.writeable = False   
-        results = hands.process(image)  
-        image.flags.writeable = True    
+        image.flags.writeable = False
+        results = hands.process(image)
+        image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         image_height, image_width, _ = image.shape
 
         if results.multi_hand_landmarks:
 
             for hand_landmarks in results.multi_hand_landmarks:
-
                 connection_drawing_spec = mp_drawing.DrawingSpec(color=(0, 0, 0), thickness=5)
                 mp_drawing.draw_landmarks(
-                    image, 
-                    hand_landmarks, 
+                    image,
+                    hand_landmarks,
                     mp_hands.HAND_CONNECTIONS,
                     connection_drawing_spec=connection_drawing_spec)
 
-            if keyboard.is_pressed(hotkey):  
-                can = 1
-                c_text = 0          
-            else:                   
-                can = 0
-                c_text = 1          
+            if keyboard.is_pressed(hotkey):
+                controller_enabled = not controller_enabled
+                time.sleep(0.2)  
 
-            if can == 1:
+            if controller_enabled:
+                cv2.putText(image, "Controller ON", (20, 450),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
+            else:
+                cv2.putText(image, "Controller OFF", (20, 450),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+            if controller_enabled:
 
                 if i == 0:
                     preX = hand_landmarks.landmark[8].x
