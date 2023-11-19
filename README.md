@@ -12,7 +12,7 @@ Welcome to HandPilot, an accessiblity tool that converts hand movement to cursor
 
 ## Features
 
-- **Variable Sensitivity / Mouse Settings**: HandPilot allows the user to set sensitivity to their own liking when using the camera to control a cursor. As well, the user can map different hand gestures to different functions.
+- **Variable Sensitivity / Mouse Settings**: HandPilot allows the user to set sensitivity to their own liking when using the camera to control a cursor. As well,  different hand gestures can be mapped to different functions by altering the source code.
 
 - **Mouse Functions**: Through hand gestures, the user can scroll and click as well as move the cursor anywhere they like.
 
